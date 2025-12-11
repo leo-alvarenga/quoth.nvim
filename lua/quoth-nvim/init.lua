@@ -9,6 +9,6 @@ function M.setup(opts)
 	vim.health.start("quoth-nvim")
 end
 
-M.version = "0.2.0"
+M.version = "0.3.0"
 
 return M

@@ -1,13 +1,13 @@
 # quoth.nvim
 
-A dead simple random quote provider for Neovim. Lazy-loads quotes on demand and supports custom quote tables or filter by "kinds".
+A dead simple, dependency-free random quote provider for Neovim. Lazy-loads quotes on demand and supports custom quote tables and/or filtering by tags.
 
 ## Features
 
 - **Zero dependencies** except optionally your own quote modules
 - **Lazy loading**: Quotes loaded only when `get_random_quote()` is called
 - **Custom quotes**: Pass your own `custom_quotes` table via `setup()`
-- **Filter quotes**: Pass your own `filter` table via `setup()`
+- **Filter quotes**: Narrow down the quote pool from which quotes are picked by adding `filter` values via `setup()` or as parameters when calling via the API
 
 ## Installation
 
@@ -32,15 +32,16 @@ With **lazy.nvim**:
             },
         },
 
-        -- Optional (overwritten by custom_quotes)
+        -- Optional
         ---@type quoth-nvim.Filter|?
         filter = {
-            tags = { "stoic", "action", "progress" },
+            tags = { "stoic", "action", "progress" }, -- If left empty, missing or nil all quotes are added to the quote pool
             mode = "and", -- "and" means that a quote is only a match if it contains ALL tags
                               -- passed in the filter
         },
 
-        include_all = false, -- If true, quotes packaged with the quoth.nvim will also be considering
+        -- Optional
+        include_all = false, -- If true, quotes packaged with quoth.nvim will also be considering
                                 -- during the filtering
     },
     version = false,
@@ -66,7 +67,7 @@ vim.print(random_quote.text .. " - " .. random_quote.author)
 
 ## Lazy Loading Details
 
-- Quotes loaded **only** during `get_random_quote()` call
+- Quotes loaded **only** during `get_random_quote()` or `get_random_quote_text()` calls
 - Loaded into **local scope** (no global pollution)
 - Custom quotes bypass file loading entirely
 
@@ -74,17 +75,32 @@ vim.print(random_quote.text .. " - " .. random_quote.author)
 
 ```lua
 require("quoth-nvim").setup({
-  custom_quotes = {},  -- A list-like table with items in the form of { author = "Some author", text = "Some quote" } (optional)
-  kind = nil,          -- Default kind/module (optional)
-})
+        -- Optional
+        ---@type table<quoth-nvim.Quote>
+        custom_quotes = {
+            {
+                author = "Donald Knuth",
+                text = "The real problem is not whether machines think but whether men do",
+                tags = { "stoic", "thinking", "technology", "humanity" },
+            },
+            {
+                author = "Linus Torvalds",
+                text = "Talk is cheap. Show me the code",
+                tags = { "action", "execution", "results" },
+            },
+        },
+
+        ---@type quoth-nvim.Filter|?
+        filter = {
+            tags = { "stoic", "action", "progress" },
+            mode = "and", -- "and" means that a quote is only a match if it contains ALL tags
+                              -- passed in the filter
+        },
+
+        include_all = false, -- If true, quotes packaged with the quoth.nvim will also be considering
+                                -- during the filtering
+    })
 ```
-
-Custom quotes take precedence over kinds. Perfect for startup messages, statusline quotes, or notifications.
-
-## Roadmap
-
-- [ ] Add more ways to extend and setup custom quotes
-- [ ] Perfect the topic/kind filtering (maybe abstract it as an optional field in the Quote type?)
 
 ## License
 

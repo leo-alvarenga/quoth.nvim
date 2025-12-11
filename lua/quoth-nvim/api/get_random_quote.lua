@@ -5,9 +5,9 @@ local function get_random_quote(filter)
 	local quotes = require("quoth-nvim.api.get").get_by_tags(filter)
 
 	math.randomseed(os.time())
-	local index = math.random(#quotes)
+	local index = math.random(#(quotes or {}))
 
-	return quotes[index]
+	return quotes[index] or require("quoth-nvim.api.utils").empty_quote
 end
 
 return get_random_quote
