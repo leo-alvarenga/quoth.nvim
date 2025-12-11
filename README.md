@@ -43,6 +43,8 @@ With **lazy.nvim**:
         include_all = false, -- If true, quotes packaged with the quoth.nvim will also be considering
                                 -- during the filtering
     },
+    version = false,
+    -- branch = "nightly" -- Use this to get the latest (possibly unstable) changes
 }
 ```
 
