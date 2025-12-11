@@ -18,10 +18,10 @@ local files = {
 ---@return table
 local function get_all()
 	local quotes = {}
-	local custom_quotes = require("quoth-nvim.config").options.custom_quotes
 
+	local opts = require("quoth-nvim.config").options
 	-- Include all native quotes if true or if no custom_quotes were provided
-	if not custom_quotes or require("quoth-nvim.config").options.include_all then
+	if not opts.custom_quotes or opts.include_all then
 		for _, file in ipairs(files) do
 			local t_quotes = require(prefix(file))
 
@@ -31,8 +31,8 @@ local function get_all()
 		end
 	end
 
-	if type(custom_quotes) == "table" then
-		quotes = vim.tbl_extend("force", quotes, custom_quotes or {})
+	if type(opts.custom_quotes) == "table" then
+		quotes = vim.tbl_extend("force", quotes, opts.custom_quotes or {})
 	end
 
 	return quotes
