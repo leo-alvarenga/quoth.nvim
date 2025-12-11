@@ -1,11 +1,14 @@
-local M = require("quoth-nvim.features")
+local M = require("quoth-nvim.api")
 
 ---Setup function
 ---@param opts ?quoth-nvim.Options
 function M.setup(opts)
 	require("quoth-nvim.config").set_options(opts)
+	require("quoth-nvim.commands").setup_commands()
+
+	vim.health.start("quoth-nvim")
 end
 
-M.version = "0.1.0"
+M.version = "0.2.0"
 
 return M
