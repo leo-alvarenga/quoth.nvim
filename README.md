@@ -5,10 +5,9 @@ A dead simple random quote provider for Neovim. Lazy-loads quotes on demand and 
 ## Features
 
 - **Zero dependencies** except optionally your own quote modules
-- **Lazy loading**: Quotes loaded only when `get_random_quote()` is called, scoped to function
+- **Lazy loading**: Quotes loaded only when `get_random_quote()` is called
 - **Custom quotes**: Pass your own `custom_quotes` table via `setup()`
-- **Modular kinds**: Specify `kind = "stoic"` to load from `quotes/stoic.lua` (or any kind)
-- **Tiny footprint**: ~50 LOC core, extensible via simple tables
+- **Filter quotes**: Pass your own `filter` table via `setup()`
 
 ## Installation
 
@@ -16,19 +15,34 @@ With **lazy.nvim**:
 
 ```lua
 {
-  "leo-alvarenga/quoth.nvim",
-  opts = {
-    -- Optional
-    ---@type table<quoth-nvim.Quote>
-    custom_quotes = {
-        { author = "Seneca", text = "Luck is what happens when preparation meets opportunity." },
-        { author = "Epictetus", text = "It’s not what happens to you, but how you react that matters." },
-    },
+    "leo-alvarenga/quoth.nvim",
+    opts = {
+        -- Optional
+        ---@type table<quoth-nvim.Quote>
+        custom_quotes = {
+            {
+                author = "Donald Knuth",
+                text = "The real problem is not whether machines think but whether men do",
+                tags = { "stoic", "thinking", "technology", "humanity" },
+            },
+            {
+                author = "Linus Torvalds",
+                text = "Talk is cheap. Show me the code",
+                tags = { "action", "execution", "results" },
+            },
+        },
 
-    -- Optional (overwritten by custom_quotes)
-    ---@type ?string|nil
-    kind = "stoic",  -- loads quotes/stoic.lua
-  },
+        -- Optional (overwritten by custom_quotes)
+        ---@type quoth-nvim.Filter|?
+        filter = {
+            tags = { "stoic", "action", "progress" },
+            mode = "and", -- "and" means that a quote is only a match if it contains ALL tags
+                              -- passed in the filter
+        },
+
+        include_all = false, -- If true, quotes packaged with the quoth.nvim will also be considering
+                                -- during the filtering
+    },
 }
 ```
 
@@ -36,19 +50,17 @@ With **lazy.nvim**:
 
 ```lua
 local quoth = require("quoth-nvim")
-local random_quote = quoth.get_random_quote()
+local random_quote = quoth.get_random_quote() -- You could also use the `get_random_quote_text` to get the quote in the exact format as seen below
 
-print(random_quote.text .. " - " .. random_quote.author)  -- :
+vim.print(random_quote.text .. " - " .. random_quote.author)
 ```
 
 **Key functions:**
 
-- `get_random_quote(custom_quotes_or_kind)`: Returns random quote object
-- `get_random_quote_text(custom_quotes_or_kind)`: Returns random quote as '"<Quote>" - Author'
-  - Priority other is:
-    - Call parameters
-    - User opts
-    - Default values
+- `get_random_quote(filter)`: Returns random quote object
+- `get_random_quote_text(filter)`: Returns random quote as '"<Quote>" - Author'
+
+> In both usages, `filter` is optional and overrides the `filter` set via `opts` if present
 
 ## Lazy Loading Details
 
