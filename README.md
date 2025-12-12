@@ -6,7 +6,7 @@ Use it for:
 
 - Startup notifications or dashboard messages
 - Statusline / winbar quotes
-- Contextual messages in your own plugins
+- Contextual/tests messages content in your own plugins
 
 ## Features
 
