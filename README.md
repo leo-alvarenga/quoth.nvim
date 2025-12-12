@@ -1,6 +1,6 @@
 # quoth.nvim
 
-A dead simple, dependency-free random quote provider for Neovim. Lazy-loads quotes on demand and supports custom quote tables and filtering by tags.
+A robust, highly configurable, dependency-free random quote provider for Neovim, capable of lazy-loading quotes on demand and supports custom quote tables and filtering by tags.
 
 Use it for:
 
