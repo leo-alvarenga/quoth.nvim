@@ -22,6 +22,7 @@ local M = {}
 ---@field filter quoth-nvim.Filter|?: A table containing the filter to be applied when determining the quote pool
 ---@field format string|?: A string with placeholders ({AUTHOR}, {COUNT}, {TEXT}) to be replaced with the quote contents when returning it as a string
 ---@field include_all boolean|nil|?: Whether or not to include pre-packaged quotes in the quote pool when selecting a random one
+---@field random_int_fn (fun(n: integer): integer)|nil|?: A function to be used when getting a random quote
 
 ---@type quoth-nvim.Options
 M.defaults = {

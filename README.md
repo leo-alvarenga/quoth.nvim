@@ -100,17 +100,26 @@ require("quoth-nvim").setup({
   -- When true, quoth.nvim's built-in quotes are also considered alongside `custom_quotes`.
   -- If `custom_quotes` is nil, built-in quotes are used by default.
   include_all = true,
+
+  random_int_fn = function(n)
+    if n < 2 then
+      return n
+    end
+
+    return n - 2
+  end
 })
 ```
 
 ### All options
 
-| Field           | Type                          | Default                      | Description                                                                                                                                         |
-| --------------- | ----------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `custom_quotes` | `quoth-nvim.Quote[]` \| `nil` | `nil`                        | Quotes you provide. If `nil`, only built-in quotes are used (depending on `include_all`).                                                           |
-| `format`        | `string` \| `nil`             | `'"{TEXT}" - {AUTHOR}'`      | Placeholder-based format used by `get_random_quote_text()` and `:QuothGetRandom`. Placeholders: `{TEXT}`, `{AUTHOR}`, `{COUNT}`.                    |
-| `filter`        | `quoth-nvim.Filter` \| `nil`  | `nil`                        | Global filter applied before selecting a random quote. Can be overridden per-call via `get_random_quote(filter)` / `get_random_quote_text(filter)`. |
-| `include_all`   | `boolean` \| `nil`            | `true` (if no custom quotes) | Whether built-in quotes should be included when filtering. If `custom_quotes` is `nil`, this is treated as `true`.                                  |
+| Field           | Type                              | Default                      | Description                                                                                                                                         |
+| --------------- | --------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `custom_quotes` | `quoth-nvim.Quote[]` \| `nil`     | `nil`                        | Quotes you provide. If `nil`, only built-in quotes are used (depending on `include_all`).                                                           |
+| `format`        | `string` \| `nil`                 | `'"{TEXT}" - {AUTHOR}'`      | Placeholder-based format used by `get_random_quote_text()` and `:QuothGetRandom`. Placeholders: `{TEXT}`, `{AUTHOR}`, `{COUNT}`.                    |
+| `filter`        | `quoth-nvim.Filter` \| `nil`      | `nil`                        | Global filter applied before selecting a random quote. Can be overridden per-call via `get_random_quote(filter)` / `get_random_quote_text(filter)`. |
+| `include_all`   | `boolean` \| `nil`                | `true` (if no custom quotes) | Whether built-in quotes should be included when filtering. If `custom_quotes` is `nil`, this is treated as `true`.                                  |
+| `random_int_fn` | `fun(n: integer): integer`\|`nil` | `nil`                        | Function to be used when getting a random quote; Useful if you want more control over the selection behavior                                        |
 
 #### Filter options
 
@@ -141,10 +150,11 @@ These are the internal types used by quoth.nvim and are useful if you rely on Lu
 
 ---@class quoth-nvim.Filter
 ---@field authors? string[]
+---@field length_constraints? quoth-nvim.LengthConstraints
+---@field random_int_fn (fun(n: integer): integer)|nil|?: A function to be used when getting a random quote
+---@field relax_author_search? boolean
 ---@field tags? string[]
 ---@field tag_mode? "and"|"or"
----@field relax_author_search? boolean
----@field length_constraints? quoth-nvim.LengthConstraints
 ```
 
 ## License
