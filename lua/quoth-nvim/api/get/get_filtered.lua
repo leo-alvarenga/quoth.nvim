@@ -1,114 +1,115 @@
----Given a quote list-like table, filter it obeying the length_constraints (if present)
----@param quotes table<quoth-nvim.Quote>
----@param config quoth-nvim.Options
----@param length_constraints quoth-nvim.LengthConstraints
----@return table<quoth-nvim.Quote>
-local function get_by_length(quotes, config, length_constraints)
-	local constraints =
-		vim.tbl_deep_extend("force", config.filter and config.filter.length_constraints or {}, length_constraints or {})
-
-	if type(constraints.max) ~= "number" and type(constraints.min) ~= "number" then
-		return quotes
-	end
-
-	return vim.iter(quotes)
-		:filter(function(quote_obj)
-			local is_long_enough = not constraints.min or string.len(quote_obj.text) >= constraints.min
-			local is_short_enough = not constraints.max or string.len(quote_obj.text) <= constraints.max
-
-			return is_long_enough and is_short_enough
-		end)
-		:totable()
+local function dummy_function(obj)
+	return type(obj) == "table"
 end
 
----Get all quotes related to one or more value in `tags`
----@param quotes table<quoth-nvim.Quote>
----@param config quoth-nvim.Options
----@param filter ?quoth-nvim.Filter
-local function get_by_tag(quotes, config, filter)
-	local safe_opts = vim.tbl_deep_extend("force", {}, config, { filter = filter or {} })
-	local filter_opts = safe_opts.filter or {}
-
-	local tags = filter_opts.tags
-	local tag_mode = filter_opts.tag_mode or "or"
-
-	if type(tags) ~= "table" or next(tags) == nil then
-		return quotes
+---Returns a safe to use tag matcher function
+---@param length_constraints quoth-nvim.LengthConstraints|nil|?: LengthConstraints filter
+---@return function(quote_obj) -> boolean: Safe to use matcher function
+local function get_length_matcher(length_constraints)
+	if
+		type(length_constraints) ~= "table"
+		or (type(length_constraints.max) ~= "number" and type(length_constraints.min) ~= "number")
+	then
+		return dummy_function
 	end
 
-	return vim.iter(quotes)
-		:filter(function(quote_obj)
-			if type(quote_obj) ~= "table" or type(quote_obj.tags) ~= "table" then
-				return false
-			end
+	return function(quote_obj)
+		if type(quote_obj) ~= "table" then
+			return false
+		end
 
-			if tag_mode == "and" then
-				return vim.iter(tags):all(function(t)
-					return string.len(t) == 0
-						or vim.iter(quote_obj.tags):any(function(tag)
-							return t == tag
-						end)
-				end)
-			end
+		local is_long_enough = not length_constraints.min or string.len(quote_obj.text) >= length_constraints.min
+		local is_short_enough = not length_constraints.max or string.len(quote_obj.text) <= length_constraints.max
 
-			return vim.iter(tags):any(function(t)
+		return is_long_enough and is_short_enough
+	end
+end
+
+---Returns a safe to use tag matcher function
+---@param filter quoth-nvim.Filter|nil|?: Filter options
+---@return function(quote_obj) -> boolean: Safe to use matcher function
+local function get_tag_matcher(filter)
+	local tags = filter and filter.tags
+	local tag_mode = (filter and filter.tag_mode) or "or"
+
+	if type(tags) ~= "table" or next(tags) == nil then
+		return dummy_function
+	end
+
+	return function(quote_obj)
+		if type(quote_obj) ~= "table" then
+			return false
+		end
+
+		local iter = vim.iter(tags)
+
+		if tag_mode == "and" then
+			return iter:all(function(t)
 				return string.len(t) == 0 or vim.iter(quote_obj.tags):any(function(tag)
 					return t == tag
 				end)
 			end)
-		end)
-		:totable()
-end
+		end
 
----Get all quotes related to one of the `authors`
----@param quotes table<quoth-nvim.Quote>
----@param config quoth-nvim.Options
----@param filter ?quoth-nvim.Filter
-local function get_by_author(quotes, config, filter)
-	local safe_opts = vim.tbl_deep_extend("force", {}, config, { filter = filter or {} })
-	local filter_opts = safe_opts.filter or {}
-
-	local authors = filter_opts.authors
-	local relax_author_search = filter_opts.relax_author_search or false
-
-	if type(authors) ~= "table" or next(authors) == nil then
-		return quotes
-	end
-
-	return vim.iter(quotes)
-		:filter(function(quote_obj)
-			if type(quote_obj) ~= "table" or type(quote_obj.tags) ~= "table" then
-				return false
-			end
-
-			if not relax_author_search then
-				return vim.iter(authors):any(function(author)
-					return string.len(author) == 0 or quote_obj.author == author
-				end)
-			end
-
-			local quote_author = string.lower(quote_obj.author)
-			return vim.iter(authors):any(function(author)
-				if type(author) ~= "string" or string.len(author) == 0 then
-					return true
-				end
-
-				local author_parts = vim.iter(vim.split(author, " ", { plain = true, trimempty = true }))
-					:map(function(part)
-						return string.lower(part)
-					end)
-					:totable()
-
-				return vim.iter(author_parts):any(function(part)
-					if string.find(quote_author, part, 1, true) then
-						return true
-					end
-
-					return false
-				end)
+		return iter:any(function(t)
+			return string.len(t) == 0 or vim.iter(quote_obj.tags):any(function(tag)
+				return t == tag
 			end)
 		end)
-		:totable()
+	end
+end
+
+---Returns wheter or not the quote_obj has a matching author to the filter; Assumes all params are valid and non-nil
+---@param quote_obj quoth-nvim.Quote
+---@param authors string[]
+---@param relax_author_search boolean?
+---@return boolean
+local function has_matching_author(quote_obj, authors, relax_author_search)
+	if type(authors) ~= "table" or next(authors) == nil then
+		return true
+	end
+
+	if not relax_author_search then
+		return vim.iter(authors):any(function(author)
+			return string.len(author) > 0 and quote_obj.author == author
+		end)
+	end
+
+	return vim.iter(authors):any(function(author)
+		if type(author) ~= "string" or string.len(author) == 0 then
+			return true
+		end
+
+		local author_parts = vim.iter(vim.split(author, " ", { plain = true, trimempty = true }))
+			:map(function(part)
+				return string.lower(part)
+			end)
+			:totable()
+
+		return vim.iter(author_parts):any(function(part)
+			if string.find(string.lower(quote_obj.author), part, 1, true) then
+				return true
+			end
+
+			return false
+		end)
+	end)
+end
+
+---Returns a safe to use author matcher function
+---@param authors string[]|nil|?
+---@param relax_author_search boolean?
+---@return function(quote_obj) -> boolean: Safe to use function to determine whether or not a quote has an author matching the filters
+local function get_author_matcher(authors, relax_author_search)
+	if type(authors) ~= "table" or next(authors) == nil then
+		return function(quote_obj)
+			return type(quote_obj) == "table"
+		end
+	end
+
+	return function(quote_obj)
+		return has_matching_author(quote_obj, authors, relax_author_search)
+	end
 end
 
 ---Get all tags containing `tag`
@@ -119,13 +120,27 @@ local function get_filtered(filter)
 	local get_all = require("quoth-nvim.api.get.get_all")
 	local all_quotes = get_all()
 
-	---@type table<quoth-nvim.Quote>
-	local quotes = {}
-	quotes = get_by_length(all_quotes, config, filter and filter.length_constraints or {})
-	quotes = get_by_author(quotes, config, filter)
-	quotes = get_by_tag(quotes, config, filter)
+	if type(filter) ~= "table" and type(config.filter) ~= "table" then
+		return all_quotes
+	end
 
-	return quotes
+	---@type quoth-nvim.Filter
+	local safe_filter = vim.tbl_deep_extend("force", {}, config.filter or {}, filter or {})
+
+	local is_within_length_constraints = get_length_matcher(safe_filter and safe_filter.length_constraints)
+	local has_author =
+		get_author_matcher(safe_filter and safe_filter.authors, safe_filter and safe_filter.relax_author_search)
+	local has_matching_tags = get_tag_matcher(safe_filter)
+
+	return vim.iter(all_quotes)
+		:filter(function(quote_obj)
+			if type(quote_obj) ~= "table" or type(quote_obj.tags) ~= "table" then
+				return false
+			end
+
+			return is_within_length_constraints(quote_obj) and has_author(quote_obj) and has_matching_tags(quote_obj)
+		end)
+		:totable()
 end
 
 return get_filtered
