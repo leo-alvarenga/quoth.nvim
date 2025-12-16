@@ -45,10 +45,34 @@ local stoic = quoth.get_random_quote({
   authors = { "aurelius", "seneca", "epictetus" },
   tags = { "stoic" },
   tag_mode = "and",
+  relax_author_search = true,
 })
 
 -- Both functions accept an optional `filter` parameter
 -- which overrides the `filter` set via `setup()` for that call.
+
+
+-- Another thing you can do is to completely overwrite your opts post-setup!
+quoth.set_option({
+  custom_quotes = {
+    {
+      author = "Commander Adama",
+      text = "It's not enough to survive. One must be worthy of survival",
+      tags = { "battlestar", "galactica", "humanity" },
+    },
+  },
+
+  filter = {
+    authors = { "Commander Adama" },
+    tags = { "humanity" },
+    relax_author_search = false,
+  },
+
+  format = "{TEXT} - {AUTHOR}, picked out of {COUNT} filtered quotes",
+  include_all = false,
+})
+
+vim.print(quoth.get_random_quote_text())
 ```
 
 You can also get a random quote via the command:

@@ -1,5 +1,7 @@
 local M = require("quoth-nvim.api")
 
+M.set_options = require("quoth-nvim.config").set_options
+
 ---Setup function
 ---@param opts ?quoth-nvim.Options
 function M.setup(opts)
@@ -9,6 +11,6 @@ function M.setup(opts)
 	vim.health.start("quoth-nvim")
 end
 
-M.version = "0.5.0"
+M.version = "0.6.0"
 
 return M
