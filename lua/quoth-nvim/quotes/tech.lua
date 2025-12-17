@@ -1,4 +1,4 @@
----@type table<quoth-nvim.Quote>
+---@type quoth-nvim.Quote[]
 return {
 	{
 		author = "Donald Knuth",
@@ -59,11 +59,6 @@ return {
 		author = "Bram Moolenaar",
 		text = "Open source is not about who contributes the most lines of code; it's about who solves the most problems",
 		tags = { "impact", "collaboration", "value" },
-	},
-	{
-		author = "Jeff Bezos",
-		text = "Your margin is my opportunity",
-		tags = { "competition", "opportunity", "strategy" },
 	},
 	{
 		author = "Paul Graham",
