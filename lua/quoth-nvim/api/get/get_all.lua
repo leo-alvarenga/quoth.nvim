@@ -15,7 +15,7 @@ local files = {
 }
 
 ---Get all quotes
----@return table<quoth-nvim.Quote>
+---@return quoth-nvim.Quote[]
 local function get_all()
 	local quotes = {}
 
